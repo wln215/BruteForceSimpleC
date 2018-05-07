@@ -110,17 +110,17 @@ func (p *parser) parseFactor() *ast.Factor {
 		obj := p.curScope.Lookup(p.tok.String())
 		if obj.Kind == ast. {
 			node := parseCall()
-			return &ast.Factor{Pos: node.}
+			return &ast.Factor{FacPos: node.}
 		}
 		node := p.parseIdent()
-		return &ast.Factor{Pos:node.NamePos, Kind:node.Object, IsNeg:false}
+		return &ast.Factor{FacPos:node.NamePos, Kind:node.Object, IsNeg:false}
 	case token.INTEGER, token.FLOAT:
 		node := p.parseBasicLit()
-		return &ast.Factor{Pos:node.LitPos, Kind:node.Kind, IsNeg:false}
+		return &ast.Factor{FacPos:node.LitPos, Kind:node.Kind, IsNeg:false}
 	case token.RPAR:
 		p.next()
 		node := p.parseExpr()
-		return &ast.Factor{Pos:node.ExprPos, Kind:node.Kind, IsNeg:false}
+		return &ast.Factor{FacPos:node.ExprPos, Kind:node.Kind, IsNeg:false}
 	default:
 		p.addError("No valid factors")
 	}
@@ -138,15 +138,74 @@ func (p *parser) parseNeg() *ast.Factor {
 	if !negate{
 		return node //Double negative
 	}
-	return &ast.Factor{Pos: node.Pos, Kind: node.Kind, IsNeg: !node.IsNeg}
+	return &ast.Factor{FacPos: node.FacPos, Kind: node.Kind, IsNeg: !node.IsNeg}
 }
 
 func (p *parser) parseTerm() *ast.Term {
-	var a, b *ast.Factor
-	switch p.tok {
-	case '-':
-		a = p.parseNeg()
+	var lhs *ast.Factor
+	if p.tok == '-' {
+		lhs = p.parseNeg()
 	}
+	p.next()
+	for p.tok == '*' || p.tok == '/'{
+
+	}
+	return &ast.Term{TermPos:lhs.FacPos}
+}
+
+//TODO chained operator support
+func (p *parser) parseMulOp(lhs *ast.Factor) *ast.MulOp{
+	pos := p.pos
+	operator := p.tok
+
+	oprands := make([]*ast.Factor, 0)
+	oprands = append(oprands, lhs)
+
+	p.next()
+	var rhs *ast.Factor
+	if p.tok == '-' {
+		rhs = p.parseNeg()
+	} else {
+		rhs = p.parseFactor()
+	}
+	oprands = append(oprands, rhs)
+
+	p.next()
+	if p.tok == '*' || p.tok == '/' {
+		chain := p.parseMulOp(rhs)
+	}
+
+	return &ast.MulOp{OpPos:pos, Op:operator, List:oprands}
+}
+
+func parseBoolExpr() {
+
+}
+
+func (p *Parser) parseExpr1() *ast.Expr {
+
+}
+
+func (p *parser) parseAddOp(lhs *ast.Term) *ast.Expr1 {
+	pos := p.pos
+	operator := p.tok
+
+	oprands := make([]*ast.Term, 0)
+	oprands = append(oprands, lhs)
+
+	p.next()
+	var rhs *ast.Term
+	p.parseTerm()
+
+	return &ast.Expr1{OpPos:pos, Op:operator, List:oprands}
+}
+
+func (p *parser) parseBoolOp(lhs *ast.Term) *ast.Expr1 {
+
+}
+
+func (p *parser) parseExpr() *ast.Expr {
+
 }
 
 

@@ -2,12 +2,10 @@ package ast
 
 import (
 	"BruteForceSimpleC/token"
-	"reflect"
 )
 
 type Node interface{
 	Pos() token.Pos
-	End() token.Pos
 }
 
 type SubTree interface { //Theoretically cannot have a root
@@ -109,6 +107,12 @@ type AddOp struct {
 //	expr1:
 //	        term               // kind 0
 //	|       expr1 add_op term  // kind 1
+type Expr1 struct {
+	ExPos 	token.Pos
+
+}
+
+
 
 
 // expr_or_str represents data reduced by productions:
@@ -129,7 +133,7 @@ type AddOp struct {
 //	|       function_call  // kind 3
 //	|       '(' expr ')'   // kind 4
 type Factor struct {
-	Pos    token.Pos
+	FacPos token.Pos
 	Kind   Kind
 	IsNeg  bool
 }
@@ -178,7 +182,11 @@ type FunctionDef struct {
 //	mul_op:
 //	        '*'  // kind 0
 //	|       '/'  // kind 1
-
+type MulOp struct {
+	OpPos token.Pos
+	Op 	   token.Token
+	List   []*Factor
+}
 
 // program represents data reduced by productions:
 //
@@ -231,6 +239,9 @@ type Program struct {
 //	|       term mul_op factor      // kind 2
 //	|       term mul_op '-' factor  // kind 3
 type Term struct {
+	TermPos token.Pos
+	Kind    Kind
+	Value   SubTree
 
 }
 
@@ -249,6 +260,14 @@ type  VarList struct {
 //	write_expr_list:
 //	        expr_or_str  // kind 0
 
+
+func (m *MulOp) Pos() token.Pos 	{return m.OpPos}
+func (f *Factor) Pos() token.Pos	{return f.FacPos}
+func (t *Term) Pos() token.Pos 		{return t.TermPos}
+
+func (m *MulOp) exprNode() {}
+func (f *Factor) exprNode() {}
+func (t *Term) exprNode() {}
 
 func NewScope(parent *Scope) *Scope {
 	return &Scope{Parent:parent, Table: make(map[string]*Object)}
