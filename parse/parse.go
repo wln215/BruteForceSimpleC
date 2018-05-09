@@ -75,8 +75,8 @@ func (p *parser) parseFile() *ast.File {
 	return &ast.File{Programs:topLevels, Scope:nil}
 }
 
-func (p *parser) parseProgram() []*ast.Decl {
-	var list []*ast.Decl
+func (p *parser) parseProgram() []*ast.GeneralDecl {
+	var list []*ast.GeneralDecl
 	topLevel := p.parseDecl()
 	list = append(list, topLevel)
 	return list
@@ -84,7 +84,7 @@ func (p *parser) parseProgram() []*ast.Decl {
 
 func (p *parser) parseDecl() *ast.Decl {
 	declPos  := p.pos
-	//declType := keywordtoType(p.tok)
+	declType := p.keywordToType()
 	declName := p.parseIdent()
 
 	if p.tok == ',' {
@@ -93,10 +93,12 @@ func (p *parser) parseDecl() *ast.Decl {
 		tail := p.parseVarList()
 		args = append(args, declName)
 		args = append(args, tail.List...)
-		return &ast.VarList{declPos, args}
+		p.expect(';')
+		return ast.GeneralDecl{TypePos:declPos, Type:declType, Specs:args}
+
 	} else {
 		p.expect('(')
-		ArgType := keywordtoType(p.tok)
+		ArgType := p.keywordToType()
 		p.next()
 		if p.tok == token.IDENT {
 
@@ -106,7 +108,7 @@ func (p *parser) parseDecl() *ast.Decl {
 
 }
 
-func keywordtoType(t token.Token) token.Token {
+func (p *parser) keywordToType() token.Token {
 	if p.tok == token.KW_FLOAT {
 		return token.FLOAT
 	} else if p.tok == token.KW_INT {
@@ -159,7 +161,6 @@ func (p *parser) parseStmt() (s *ast.Stmt) {
 		p.parseBlock()
 	default:
 		//no statement found
-
 		p.addError("InvalidStatement")
 		s = parseBadStatement()
 		}
@@ -204,10 +205,16 @@ func (p *parser) parseReadStmt() *ast.ReadStmt {
 }
 
 func (p *parser) parseWriteExprList() *ast.WriteStmt {
-
+	writePos := p.expect(token.KW_WRITE)
+	return &ast.WriteStmt{Write:writePos, p.parseExprList()}
 }
 func (p *parser) parseReturnExpr() *ast.ReturnStmt {
-
+	returnPos := p.pos
+	var results []ast.Expr
+	for p.tok != ';'{
+		results = append(results, p.parseExpr())
+	}
+	return &ast.ReturnStmt{Return:returnPos, Results:results}
 }
 
 func (p *parser) parseBlock() ast.BlockStmt {

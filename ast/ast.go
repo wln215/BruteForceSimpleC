@@ -280,7 +280,7 @@ type Spec interface {
 
 //ValueSpec node represents a constant or variable declaration
 type ValueSpec struct {
-	Names *[]Ident
+	Names  []Ident
 	Type   Expr
 	Values []Expr
 }
@@ -290,9 +290,9 @@ type BadDecl struct {
 }
 
 type GeneralDecl struct {
-	TokPos  token.Pos
-	Tok 	token.Token
-	Specs   []Spec
+	TypePos token.Pos
+	Type 	token.Token
+	Specs   []*Ident
 }
 
 type FunctionDecl struct {
@@ -304,12 +304,6 @@ type FunctionDecl struct {
 type File struct {
 	Programs []*Program
 	Scope 	 *Scope
-}
-
-type AddOp struct {
-	Op 		token.Token //Position of operator
-	OpPos 	token.Pos
-	List 	[]Expr
 }
 
 
@@ -353,12 +347,6 @@ type FunctionDef struct {
 
 type Kind token.Token //Can only be int or float
 
-type MulOp struct {
-	OpPos token.Pos
-	Op 	   token.Token
-	List   []*Factor
-}
-
 type Program struct {
 	Define token.Pos
 	FuncDefs 	[]FunctionDef
@@ -366,3 +354,34 @@ type Program struct {
 	FuncDecl 	[]FunctionDecl
 
 }
+
+func (d *BadDecl) Pos() 	token.Pos {return d.From}
+func (d *GeneralDecl) Pos() token.Pos {return d.TypePos}
+func (d *) Pos() token.Pos {return }
+func (d *) Pos() token.Pos {return }
+func (d *) Pos() token.Pos {return }
+func (d *) Pos() token.Pos {return }
+func (d *) Pos() token.Pos {return }
+func (d *) Pos() token.Pos {return }
+
+
+func (d *BadDecl) End() token.Pos	  {return d.To}
+func (d *GeneralDecl) End() token.Pos {return token.Pos(int(d.TypePos) + len(d.Specs))}
+func (d *) End() token.Pos {return }
+func (d *) End() token.Pos {return }
+func (d *) End() token.Pos {return }
+func (d *) End() token.Pos {return }
+func (d *) End() token.Pos {return }
+func (d *) End() token.Pos {return }
+
+func (d *) declNode() {}
+func (d *GeneralDecl) declNode() {}
+func (d *) declNode() {}
+func (d *) declNode() {}
+func (d *) declNode() {}
+func (d *) declNode() {}
+func (d *) declNode() {}
+func (d *) declNode() {}
+
+
+
