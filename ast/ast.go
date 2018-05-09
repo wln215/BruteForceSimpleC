@@ -2,12 +2,14 @@ package ast
 
 import (
 	"BruteForceSimpleC/token"
+	"reflect"
 )
 
 /* Interfaces */
 
 type Node interface{
 	Pos() token.Pos
+	End() token.Pos
 }
 //All Expressions implement Expr interface
 type Expr interface { //Theoretically cannot have a root
@@ -29,10 +31,7 @@ type Decl interface {
 
 /* Expressions and types */
 
-type  VarList struct {
-	List []*Ident
-	Type Type
-}
+
 
 type BadExpr struct {
 	From, To token.Pos
@@ -41,12 +40,18 @@ type BadExpr struct {
 type Ident struct {
 	NamePos token.Pos
 	Name 	string
+
 	Object  *Object //nil if keyword
 }
 
-type BasicLiteral struct {
+type VarList struct {
+	ZerothPos token.Pos
+	List 	  []*Ident
+}
+
+type BasicLit struct {
 	LitPos token.Pos
-	Kind   token.Token
+	Type   token.Token
 	Lit    string
 }
 
@@ -58,6 +63,7 @@ type FuncLit struct {
 type ParenExpr struct {
 	Lparen  token.Pos
 	X 		Expr
+	Rparen  token.Pos
 }
 
 type CallExpr struct {
@@ -68,17 +74,88 @@ type CallExpr struct {
 }
 
 type BinaryExpr struct {
-	Lhs   	*Expr
+	Lhs   	Expr
 	Op    	token.Token
 	OpPos 	token.Pos
-	Rhs 	*Expr
+	Rhs 	Expr
+}
+
+type BoolExpr struct {
+	Lhs		Expr
+	OpPos 	token.Pos
+	Op 		token.Token
+	Rhs 	Expr
 }
 
 type Expr1 struct {
 	ExPos 	token.Pos
 	Name 	*Ident
-	Value 	Expr
+	Value 	Term
 }
+
+
+type Term struct {
+	TermPos token.Pos
+	Value   Expr
+
+}
+
+type Factor struct {
+	FacPos  token.Pos
+	IsNeg   bool
+	Type 	Expr
+	Value   Expr
+}
+
+type FunctionType struct {
+	Func   token.Pos
+	Params *Ident
+	Type   Expr
+}
+
+
+
+
+
+
+
+func (x *BadExpr) Pos() token.Pos 		{return x.From}
+func (x *Ident) Pos() token.Pos 		{return x.NamePos}
+func (x *VarList) Pos() token.Pos 		{return x.ZerothPos}
+func (x *BasicLit) Pos() token.Pos 		{return x.LitPos}
+func (x *FuncLit) Pos() token.Pos 		{return x.Type.Pos()}
+func (x *ParenExpr) Pos() token.Pos 	{return x.Lparen}
+func (x *CallExpr) Pos() token.Pos 		{return x.Fun.Pos()}
+func (x *BinaryExpr) Pos() token.Pos 	{return x.Lhs.Pos()}
+func (x *Expr1) Pos() token.Pos 		{return x.ExPos}
+func (x *Term) Pos() token.Pos 			{return x.TermPos}
+func (x *Factor) Pos() token.Pos		{return x.FacPos}
+func (t *FunctionType) Pos() token.Pos  {return t.Func}
+
+func (x *BadExpr) End() token.Pos 		{return x.To}
+func (x *Ident) End() token.Pos 		{return token.Pos(int(x.NamePos) + len(x.Name))}
+func (x *VarList) End() token.Pos 		{return token.Pos(int(x.ZerothPos) + len(x.List))}
+func (x *BasicLit) End() token.Pos 		{return token.Pos(int(x.LitPos) + len(x.Lit))}
+func (x *FuncLit) End() token.Pos 		{return x.Body.End()}
+func (x *ParenExpr) End() token.Pos 	{return x.Rparen+1}
+func (x *CallExpr) End() token.Pos 		{return x.Rparen+1}
+func (x *BinaryExpr) End() token.Pos 	{return x.Rhs.End()}
+func (x *Term) End() token.Pos	 		{return x.Value.End()}
+func (x *Factor) End() token.Pos 		{return x.Value.End()}
+func (x *Expr1) End() token.Pos 		{return token.Pos(int(x.ExPos) + len(x.))}
+
+func (x *BadExpr) exprNode()		{}
+func (x *Ident) exprNode()			{}
+func (x *VarList) exprNode()		{}
+func (x *BasicLit) exprNode()		{}
+func (x *FuncLit) exprNode()		{}
+func (x *ParenExpr) exprNode()		{}
+func (x *CallExpr) exprNode()		{}
+func (x *BinaryExpr) exprNode()		{}
+func (x *Expr1) exprNode()			{}
+func (x *Term) exprNode()			{}
+func (x *Factor) exprNode()			{}
+func (x *FunctionType) exprNode()	{}
 
 /* Convenience functions for Ident */
 
@@ -108,16 +185,16 @@ type AssignStmt struct {
 
 type IfStmt struct {
 	IfKey 	 token.Pos
-	Cond   	 BinaryExpr
-	IfStmt   *Expr
-	ElseStmt *Expr
+	Cond   	 BoolExpr
+	IfStmt   Stmt
+	Else 	 Stmt
 
 }
 
 type WhileStmt struct {
-	Entry 	 token.Pos
-	Cond 	 BinaryExpr
-	Loop 	 *Expr
+	While 	 token.Pos
+	Cond 	 BoolExpr
+	Loop 	 Stmt
 }
 
 type ReadStmt struct {
@@ -130,18 +207,69 @@ type WriteStmt struct {
 	Out 	WriteExprList
 }
 
+type WriteExprList struct {
+	ListBeg token.Pos
+	Decls 	[]Decl
+	String  []string
+}
+
 type ReturnStmt struct {
 	Return  token.Pos // position of "return" keyword
 	Results []Expr    // result expressions; or nil
 }
 
-type Term struct {
-	TermPos token.Pos
-	Kind    Kind
-	Value   *Expr
-
+type BlockStmt struct {
+	Lbrace token.Pos // position of "{"
+	List   []Stmt
+	Rbrace token.Pos // position of "}"
 }
 
+func (s *BadStmt) Pos()	token.Pos 		{return s.From}
+func (s *DeclStmt) Pos() token.Pos 		{return s.Decl.Pos()}
+func (s *ExprStmt) Pos() token.Pos 		{return s.Pos()}
+func (s *AssignStmt) Pos() token.Pos 	{return s.TokPos}
+func (s *IfStmt) Pos() token.Pos 		{return s.IfKey}
+func (s *WhileStmt) Pos() token.Pos		{return s.While}
+func (s *ReadStmt) Pos() token.Pos 		{return s.Read}
+func (s *WriteStmt) Pos() token.Pos 	{return s.Write}
+func (s *WriteExprList) Pos() token.Pos {return s.ListBeg}
+func (s *ReturnStmt) Pos() token.Pos 	{return s.Return}
+func (s *BlockStmt) Pos() token.Pos 	{return s.Lbrace}
+
+
+func (s *BadStmt) End() token.Pos	 	{return s.To}
+func (s *DeclStmt) End() token.Pos	 	{return s.Decl.Pos()}
+func (s *ExprStmt) End() token.Pos	 	{return s.X.Pos()}
+func (s *AssignStmt) End() token.Pos 	{return s.Rhs[len(s.Rhs)-1].End()}
+func (s *IfStmt) End() token.Pos	 	{
+	if s.Else != nil {
+	return s.Else.End()
+	}
+	return s.Stmt.End()}
+func (s *WhileStmt) End() token.Pos	 	{return s.Loop.End()}
+func (s *ReadStmt) End() token.Pos	 	{return s.In.List[len(s.In.List)-1].End()}
+func (s *WriteStmt) End() token.Pos	 	{return s.Out.End()}
+func (s *WriteExprList) End() token.Pos	{return s.ListBeg}
+func (s *ReturnStmt) End() token.Pos	{
+	if n := len(s.Results); n > 0 {
+		return s.Results[n-1].End()
+	}
+	return s.Return + 6 // len("return"
+}
+func (s *BlockStmt) End() token.Pos	 	{return s.Rbrace}
+
+
+func (s *BadStmt)  stmtNode()		{}
+func (s *DeclStmt) stmtNode()		{}
+func (s *ExprStmt) stmtNode()		{}
+func (s *AssignStmt) stmtNode()		{}
+func (s *IfStmt) stmtNode()			{}
+func (s *WhileStmt) stmtNode()		{}
+func (s *ReadStmt) stmtNode()		{}
+func (s *WriteStmt) stmtNode()		{}
+func (s *WriteExprList) stmtNode()	{}
+func (s *ReturnStmt) stmtNode()		{}
+func (s *BlockStmt) stmtNode()		{}
 
 /* Declarations */
 //A Spec node represents a constant, type, or variable declaration
@@ -155,8 +283,6 @@ type ValueSpec struct {
 	Names *[]Ident
 	Type   Expr
 	Values []Expr
-
-
 }
 
 type BadDecl struct {
@@ -171,25 +297,13 @@ type GeneralDecl struct {
 
 type FunctionDecl struct {
 	Name *Ident
-	Type *FuncType
-
+	Type *FunctionType
 }
-
-type FunctionType struct {
-	Func   token.Pos
-	Params *[]VarList
-	Type   Expr
-}
-
-
-
-
-
 
 
 type File struct {
 	Programs []*Program
-	Scope
+	Scope 	 *Scope
 }
 
 type AddOp struct {
@@ -198,51 +312,17 @@ type AddOp struct {
 	List 	[]Expr
 }
 
-// body represents data reduced by production:
-//
-//	body:
-//	        '{' decl stmts '}'  // kind 0
-
-
-
-// expr represents data reduced by productions:
-//
-//	expr:
-//	        ID '=' expr  // kind 0
-//	|       expr1        // kind 1
 
 type AssignExpr struct {
 	LhsPos token.Pos
 	ID 	   *Ident
 }
 
-
-// expr1 represents data reduced by productions:
-//
-//	expr1:
-//	        term               // kind 0
-//	|       expr1 add_op term  // kind 1
-
-
-
-
-// expr_or_str represents data reduced by productions:
-//
-//	expr_or_str:
-//	        expr                        // kind 0
-//	|       STRING_LIT                  // kind 1
-//	|       expr_or_str ',' expr        // kind 2
-//	|       expr_or_str ',' STRING_LIT  // kind 3
 type ExprOrString struct {
 
 }
 
 
-type Factor struct {
-	FacPos token.Pos
-	Kind   Kind
-	IsNeg  bool
-}
 
 // function_call represents data reduced by production:
 //
@@ -271,14 +351,7 @@ type FunctionDef struct {
 	Body   Expr
 }
 
-// kind represents data reduced by productions:
-//
-//	kind:
-//	        KW_INT    // kind 0
-//	|       KW_FLOAT  // kind 1
-
 type Kind token.Token //Can only be int or float
-
 
 type MulOp struct {
 	OpPos token.Pos
@@ -286,41 +359,10 @@ type MulOp struct {
 	List   []*Factor
 }
 
-// program represents data reduced by productions:
-//
-//	program:
-//	        /* empty */            // kind 0
-//	|       program function_def   // kind 1
-//	|       program decl           // kind 2
-//	|       program function_decl  // kind 3
-
 type Program struct {
 	Define token.Pos
-	Name   *Ident
-	Type   *Ident
+	FuncDefs 	[]FunctionDef
+	Decls 		[]Decl
+	FuncDecl 	[]FunctionDecl
+
 }
-
-
-
-
-
-
-// write_expr_list represents data reduced by production:
-//
-//	write_expr_list:
-//	        expr_or_str  // kind 0
-
-func (a *AddOp) Pos() token.Pos 	{return a.OpPos}
-func (m *MulOp) Pos() token.Pos 	{return m.OpPos}
-func (f *Factor) Pos() token.Pos	{return f.FacPos}
-func (t *Term) Pos() token.Pos 		{return t.TermPos}
-func (i *Ident) Pos() token.Pos     {return i.NamePos}
-func (i *IfStmt) Pos() token.Pos	{return i.IfKey}
-
-
-func (a *AddOp) exprNode()  {}
-func (m *MulOp) exprNode()  {}
-func (f *Factor) exprNode() {}
-func (t *Term) exprNode()   {}
-func (i *Ident) exprNode()  {}
-

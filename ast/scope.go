@@ -1,5 +1,7 @@
 package ast
 
+import "BruteForceSimpleC/token"
+
 type Scope struct {
 	Parent *Scope
 	Table  map[string]*Object
@@ -33,7 +35,7 @@ type Object struct {
 	Kind 	ObKind
 	Decl 	interface{}
 	Data 	interface{}
-	Type 	interface{}
+	Type 	token.Token
 }
 
 type ObKind int
