@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="26f40ddf-4b40-4b09-943a-938bb750eb32" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/ast/scope.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ast/ast.go" beforeDir="false" afterPath="$PROJECT_DIR$/ast/ast.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/parse/parse.go" beforeDir="false" afterPath="$PROJECT_DIR$/parse/parse.go" afterDir="false" />
@@ -20,7 +19,7 @@
     <SUITE FILE_PATH="coverage/BruteForceSimpleC$TestScan_in_BruteForceSimpleC_scan.out" NAME="TestScan in BruteForceSimpleC/scan Coverage Results" MODIFIED="1525652902648" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5071531">
+    <splitter split-orientation="horizontal" split-proportion="0.58869815">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="token.go" pinned="false" current-in-tab="false">
@@ -32,23 +31,20 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ast.go" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/ast/ast.go">
+          <file leaf-file-name="scan.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/scan/scan.go">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="5460">
-                  <caret line="260" lean-forward="true" selection-start-line="260" selection-end-line="260" />
-                  <folding>
-                    <element signature="e#13#50#0" expanded="true" />
-                  </folding>
+                <state relative-caret-position="1764">
+                  <caret line="87" column="23" lean-forward="true" selection-start-line="87" selection-start-column="23" selection-end-line="87" selection-end-column="23" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="parse.go" pinned="false" current-in-tab="false">
+          <file leaf-file-name="parse.go" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/parse/parse.go">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="455">
-                  <caret line="142" selection-start-line="142" selection-end-line="142" />
+                <state relative-caret-position="306">
+                  <caret line="94" column="17" lean-forward="true" selection-start-line="94" selection-start-column="17" selection-end-line="94" selection-end-column="17" />
                   <folding>
                     <element signature="e#15#133#0" expanded="true" />
                   </folding>
@@ -60,20 +56,23 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="parse.go" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/parse/parse.go">
+          <file leaf-file-name="ast.go" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/ast/ast.go">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="260">
-                  <caret line="52" column="11" selection-start-line="52" selection-start-column="10" selection-end-line="52" selection-end-column="11" />
+                <state relative-caret-position="1455">
+                  <caret line="123" column="12" selection-start-line="123" selection-start-column="9" selection-end-line="123" selection-end-column="12" />
+                  <folding>
+                    <element signature="e#13#50#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="scope.go" pinned="false" current-in-tab="true">
+          <file leaf-file-name="scope.go" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/ast/scope.go">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="329">
-                  <caret line="44" column="12" selection-start-line="44" selection-start-column="12" selection-end-line="44" selection-end-column="12" />
+                <state relative-caret-position="-39">
+                  <caret line="21" selection-start-line="21" selection-end-line="21" />
                 </state>
               </provider>
             </entry>
@@ -91,28 +90,8 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>||</find>
-      <find>facto</find>
-      <find>fac</find>
-      <find>Obje</find>
-      <find>call</find>
-      <find>subT</find>
-      <find>SubT</find>
-      <find>term</find>
-      <find>make</find>
-      <find>kind</find>
-      <find>obje</find>
-      <find>parseBas</find>
-      <find>var</find>
-      <find>expr</find>
-      <find>Ident</find>
-      <find>factor</find>
-      <find>Fa</find>
-      <find>parsefi</find>
       <find>list</find>
-      <find>expect</find>
       <find>progra</find>
-      <find>decl</find>
       <find>Bool</find>
       <find>VarList</find>
       <find>Expr</find>
@@ -121,6 +100,26 @@
       <find>A</find>
       <find>Object</find>
       <find>FunctionDecl</find>
+      <find>BasicLiteral</find>
+      <find>FuncType</find>
+      <find>decl</find>
+      <find>Var</find>
+      <find>If</find>
+      <find>bool</find>
+      <find>expect</find>
+      <find>Pare</find>
+      <find>Fac</find>
+      <find>Facto</find>
+      <find>Paren</find>
+      <find>Term</find>
+      <find>Ad</find>
+      <find>Kind</find>
+      <find>BinaryExpr</find>
+      <find>paren</find>
+      <find>Binary</find>
+      <find>Call</find>
+      <find>else</find>
+      <find>varL</find>
     </findStrings>
     <replaceStrings>
       <replace>OP_MULT</replace>
@@ -128,6 +127,7 @@
       <replace>expr</replace>
       <replace>Expr</replace>
       <replace>BinaryExpr</replace>
+      <replace>BasicLit</replace>
     </replaceStrings>
   </component>
   <component name="GOROOT" path="/usr/local/go" />
@@ -145,9 +145,9 @@
         <option value="$PROJECT_DIR$/token/token.go" />
         <option value="$PROJECT_DIR$/scan/scan.go" />
         <option value="$PROJECT_DIR$/scan/scan_test.go" />
-        <option value="$PROJECT_DIR$/parse/parse.go" />
         <option value="$PROJECT_DIR$/ast/scope.go" />
         <option value="$PROJECT_DIR$/ast/ast.go" />
+        <option value="$PROJECT_DIR$/parse/parse.go" />
       </list>
     </option>
   </component>
@@ -365,11 +365,13 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="How does git even work" />
     <MESSAGE value="Late compiler" />
-    <option name="LAST_COMMIT_MESSAGE" value="Late compiler" />
+    <MESSAGE value="Ast almost finished" />
+    <MESSAGE value="Parser is reducing in errors" />
+    <option name="LAST_COMMIT_MESSAGE" value="Parser is reducing in errors" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="1" />
+      <option name="time" value="2" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
@@ -394,6 +396,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2982">
           <caret line="147" column="24" selection-start-line="147" selection-start-column="24" selection-end-line="147" selection-end-column="24" />
+          <folding>
+            <element signature="e#15#133#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -529,24 +534,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scan/scan.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="87" column="23" lean-forward="true" selection-start-line="87" selection-start-column="23" selection-end-line="87" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="126">
           <caret line="6" selection-start-line="6" selection-end-line="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/token/token.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="546">
-          <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -557,27 +548,44 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/parse/parse.go">
+    <entry file="file://$PROJECT_DIR$/token/token.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="260">
-          <caret line="52" column="11" selection-start-line="52" selection-start-column="10" selection-end-line="52" selection-end-column="11" />
+        <state relative-caret-position="546">
+          <caret line="26" column="13" selection-start-line="26" selection-start-column="13" selection-end-line="26" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scan/scan.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1764">
+          <caret line="87" column="23" lean-forward="true" selection-start-line="87" selection-start-column="23" selection-end-line="87" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ast/scope.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-39">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/ast/ast.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5460">
-          <caret line="260" lean-forward="true" selection-start-line="260" selection-end-line="260" />
+        <state relative-caret-position="1455">
+          <caret line="123" column="12" selection-start-line="123" selection-start-column="9" selection-end-line="123" selection-end-column="12" />
           <folding>
             <element signature="e#13#50#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ast/scope.go">
+    <entry file="file://$PROJECT_DIR$/parse/parse.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="329">
-          <caret line="44" column="12" selection-start-line="44" selection-start-column="12" selection-end-line="44" selection-end-column="12" />
+        <state relative-caret-position="306">
+          <caret line="94" column="17" lean-forward="true" selection-start-line="94" selection-start-column="17" selection-end-line="94" selection-end-column="17" />
+          <folding>
+            <element signature="e#15#133#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

@@ -69,7 +69,7 @@ type ParenExpr struct {
 type CallExpr struct {
 	Fun 		Expr
 	Lparen		token.Pos
-	Args 		[]Expr
+	Args 		Expr
 	Rparen 		token.Pos
 }
 

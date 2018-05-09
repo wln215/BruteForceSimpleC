@@ -5,6 +5,7 @@ import (
 	"BruteForceSimpleC/scan"
 	"BruteForceSimpleC/ast"
 
+	"container/list"
 )
 
 type parser struct {
@@ -74,15 +75,46 @@ func (p *parser) parseFile() *ast.File {
 	return &ast.File{Programs:topLevels, Scope:nil}
 }
 
+func (p *parser) parseProgram() []*ast.Decl {
+	var list []*ast.Decl
+	topLevel := p.parseDecl()
+	list = append(list, topLevel)
+	return list
+}
 
-func (p *parser) parseProgram() *ast.Expr {
-	var expr *ast.Expr
+func (p *parser) parseDecl() *ast.Decl {
+	declPos  := p.pos
+	//declType := keywordtoType(p.tok)
+	declName := p.parseIdent()
 
-	if p.tok != token.KW_FLOAT || p.tok != token.KW_INT {
-		p.addError("no function or declaration")
+	if p.tok == ',' {
+		var args []*ast.Ident
+		p.next()
+		tail := p.parseVarList()
+		args = append(args, declName)
+		args = append(args, tail.List...)
+		return &ast.VarList{declPos, args}
+	} else {
+		p.expect('(')
+		ArgType := keywordtoType(p.tok)
+		p.next()
+		if p.tok == token.IDENT {
+
+		}
+
 	}
-	p.next()
 
+}
+
+func keywordtoType(t token.Token) token.Token {
+	if p.tok == token.KW_FLOAT {
+		return token.FLOAT
+	} else if p.tok == token.KW_INT {
+		return token.INTEGER
+	} else {
+		p.addError("no function or declaration")
+		return token.ILLEGAL
+	}
 }
 
 // var_list represents data reduced by productions:
@@ -104,7 +136,7 @@ func (p *parser) parseVarList() ast.VarList {
 	return ast.VarList{ZerothPos:startPos, List:list}
 }
 
-func (p *parser) parseStmt() (s ast.Stmt) {
+func (p *parser) parseStmt() (s *ast.Stmt) {
 	switch p.tok {
 	case token.IDENT, '-', token.INTEGER, token.FLOAT, '(':
 		//Tokens that may start an expression
@@ -146,18 +178,16 @@ func (p *parser) parseIfStmt() *ast.IfStmt {
 	ifStmt := p.parseStmt()
 	if p.tok == token.KW_ELSE {
 		elseStmt := p.parseElseStmt(ifKey)
-		return &ast.IfStmt {Cond: cond, IfStmt:ifStmt, ElseStmt:elseStmt }
+		return &ast.IfStmt {Cond: cond, IfStmt:ifStmt, Else:elseStmt }
 	}
 	return &ast.IfStmt {ifKey, cond, ifStmt, nil }
 }
 
-func (p *parser) parseElseStmt(openIf token.Pos) *ast.Expr {
-	elseKey := p.pos
-	p.next()
-	elseStmt := p.parseStmt()
-	return &ast.ElseStmt{}
-
+func (p *parser) parseElseStmt(openIf token.Pos) *ast.Stmt {
+	p.expect(token.KW_ELSE)
+	return p.parseStmt()
 }
+
 func (p *parser) parseWhileStmt() *ast.WhileStmt {
 	whileKey := p.pos
 	p.next()
@@ -192,24 +222,30 @@ func (p *parser) parseBlock() ast.BlockStmt {
 	return ast.BlockStmt{open, block, p.pos}
 }
 
-
+func (p *parser) parseParenExpr() *ast.ParenExpr {
+	lPar := p.pos
+	p.next()
+	x 	 := p.parseExpr()
+	rPar := p.expect(')')
+	return &ast.ParenExpr{Lparen:lPar, X:x, Rparen:rPar}
+}
 
 func (p *parser) parseFactor() *ast.Factor {
 	switch p.tok {
 	case token.IDENT:
 		obj := p.curScope.Lookup(p.tok.String())
 		if obj.Kind == ast.Function {
-			node := parseCall()
-			return &ast.Factor{FacPos: node.Entry}
+			node := p.parseCall()
+			return &ast.Factor{FacPos: node.Pos()}
 		}
 		node := p.parseIdent()
-		return &ast.Factor{FacPos:node.NamePos, Type:node.Object.Type, IsNeg:false}
+		return &ast.Factor{FacPos:node.NamePos, IsNeg:false}
 	case token.INTEGER, token.FLOAT:
 		node := p.parseBasicLit()
-		return &ast.Factor{FacPos:node.LitPos, Type:node.Type, IsNeg:false}
+		return &ast.Factor{FacPos:node.LitPos, IsNeg:false}
 	case token.RPAR:
 		node := p.parseParenExpr()
-		return &ast.Factor{FacPos:node.Lparen, Type:node.X.Type, IsNeg:false}
+		return &ast.Factor{FacPos:node.Lparen, IsNeg:false}
 	default:
 		p.addError("No valid factors")
 	}
@@ -339,6 +375,16 @@ func (p *parser) parseBoolExpr() ast.BoolExpr {
 
 
 func (p *parser) parseCall() *ast.CallExpr{
+	obj := p.curScope.Lookup(p.lit)
+	if obj.Kind == ast.Function {
+		fun := obj.Decl
+	} else {
+		p.addError("function never declared")
+	}
+	lpar := p.expect('(')
+	x := p.parseExpr()
+	rpar := p.expect(',')
+	return &ast.CallExpr{Fun:fun, Lparen:lpar, Args:x, Rparen:rpar}
 
 }
 
