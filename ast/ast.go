@@ -2,7 +2,6 @@ package ast
 
 import (
 	"BruteForceSimpleC/token"
-	"reflect"
 )
 
 /* Interfaces */
@@ -41,7 +40,7 @@ type Ident struct {
 	NamePos token.Pos
 	Name 	string
 
-	Object  *Object //nil if keyword
+	//Object  *Object //nil if keyword
 }
 
 type VarList struct {
@@ -67,7 +66,7 @@ type ParenExpr struct {
 }
 
 type CallExpr struct {
-	Fun 		Expr
+	Fun 		string
 	Lparen		token.Pos
 	Args 		Expr
 	Rparen 		token.Pos
@@ -125,7 +124,7 @@ func (x *VarList) Pos() token.Pos 		{return x.ZerothPos}
 func (x *BasicLit) Pos() token.Pos 		{return x.LitPos}
 func (x *FuncLit) Pos() token.Pos 		{return x.Type.Pos()}
 func (x *ParenExpr) Pos() token.Pos 	{return x.Lparen}
-func (x *CallExpr) Pos() token.Pos 		{return x.Fun.Pos()}
+func (x *CallExpr) Pos() token.Pos 		{return x.Lparen - token.Pos(len(x.Fun))}
 func (x *BinaryExpr) Pos() token.Pos 	{return x.Lhs.Pos()}
 func (x *Expr1) Pos() token.Pos 		{return x.ExPos}
 func (x *Term) Pos() token.Pos 			{return x.TermPos}
@@ -142,7 +141,7 @@ func (x *CallExpr) End() token.Pos 		{return x.Rparen+1}
 func (x *BinaryExpr) End() token.Pos 	{return x.Rhs.End()}
 func (x *Term) End() token.Pos	 		{return x.Value.End()}
 func (x *Factor) End() token.Pos 		{return x.Value.End()}
-func (x *Expr1) End() token.Pos 		{return token.Pos(int(x.ExPos) + len(x.))}
+func (x *Expr1) End() token.Pos 		{return x.Value.End()}
 
 func (x *BadExpr) exprNode()		{}
 func (x *Ident) exprNode()			{}
@@ -159,7 +158,7 @@ func (x *FunctionType) exprNode()	{}
 
 /* Convenience functions for Ident */
 
-func NewIdent(name string) *Ident { return &Ident{token.NoPos, name, nil}}
+func NewIdent(name string) *Ident { return &Ident{token.NoPos, name}}
 
 /* Statements */
 
@@ -204,13 +203,13 @@ type ReadStmt struct {
 
 type WriteStmt struct {
 	Write 	token.Pos
-	Out 	WriteExprList
+	Out 	*WriteExprList
 }
 
 type WriteExprList struct {
 	ListBeg token.Pos
-	Decls 	[]Decl
-	String  []string
+	Expr 	[]Expr
+
 }
 
 type ReturnStmt struct {
@@ -245,7 +244,7 @@ func (s *IfStmt) End() token.Pos	 	{
 	if s.Else != nil {
 	return s.Else.End()
 	}
-	return s.Stmt.End()}
+	return s.IfStmt.End()}
 func (s *WhileStmt) End() token.Pos	 	{return s.Loop.End()}
 func (s *ReadStmt) End() token.Pos	 	{return s.In.List[len(s.In.List)-1].End()}
 func (s *WriteStmt) End() token.Pos	 	{return s.Out.End()}
@@ -292,30 +291,15 @@ type BadDecl struct {
 type GeneralDecl struct {
 	TypePos token.Pos
 	Type 	token.Token
-	Specs   []*Ident
+	List 	VarList
 }
 
-type FunctionDecl struct {
-	Name *Ident
-	Type *FunctionType
-}
 
 
 type File struct {
 	Programs []*Program
 	Scope 	 *Scope
 }
-
-
-type AssignExpr struct {
-	LhsPos token.Pos
-	ID 	   *Ident
-}
-
-type ExprOrString struct {
-
-}
-
 
 
 // function_call represents data reduced by production:
@@ -331,6 +315,13 @@ type FunctionCall struct {
 //
 //	function_decl:
 //	        kind ID '(' kind ')' ';'  // kind 0
+type FunctionDecl struct {
+	DeclPos   token.Pos
+	Name 	  *Ident
+	FuncType  token.Token
+	ArgType   token.Token
+	DeclEnd	  token.Pos
+}
 
 
 // function_def represents data reduced by production:
@@ -341,47 +332,42 @@ type FunctionDef struct {
 	Define token.Pos
 	Name   *Ident
 	Type   *Ident
-	Kind   Kind
+	Kind   token.Token
 	Body   Expr
 }
 
-type Kind token.Token //Can only be int or float
+
 
 type Program struct {
-	Define token.Pos
-	FuncDefs 	[]FunctionDef
-	Decls 		[]Decl
-	FuncDecl 	[]FunctionDecl
+	Entry 		token.Pos
+	Decls 		[]*Decl
 
 }
 
 func (d *BadDecl) Pos() 	token.Pos {return d.From}
 func (d *GeneralDecl) Pos() token.Pos {return d.TypePos}
-func (d *) Pos() token.Pos {return }
-func (d *) Pos() token.Pos {return }
-func (d *) Pos() token.Pos {return }
-func (d *) Pos() token.Pos {return }
-func (d *) Pos() token.Pos {return }
-func (d *) Pos() token.Pos {return }
+func (d *FunctionCall) Pos() token.Pos {return d.Name.NamePos}
+func (d *FunctionDecl) Pos() token.Pos {return d.DeclPos}
+func (d *FunctionDef) Pos() token.Pos {return d.Define}
+func (d *Program) Pos() token.Pos {return d.Entry}
+//func (d *) Pos() token.Pos {return }
 
 
 func (d *BadDecl) End() token.Pos	  {return d.To}
-func (d *GeneralDecl) End() token.Pos {return token.Pos(int(d.TypePos) + len(d.Specs))}
-func (d *) End() token.Pos {return }
-func (d *) End() token.Pos {return }
-func (d *) End() token.Pos {return }
-func (d *) End() token.Pos {return }
-func (d *) End() token.Pos {return }
-func (d *) End() token.Pos {return }
+func (d *GeneralDecl) End() token.Pos {return d.List.End()}
+func (d *FunctionCall) End() token.Pos {return d.Args[len(d.Args)-1].End()}
+func (d *FunctionDecl) End() token.Pos {return d.DeclEnd}
+func (d *FunctionDef) End() token.Pos {return d.Body.End()}
+//func (d *Program) End() token.Pos {return d.*Decls[-1]}
+//func (d *) End() token.Pos {return }
 
-func (d *) declNode() {}
+func (d *BadDecl) declNode() {}
 func (d *GeneralDecl) declNode() {}
-func (d *) declNode() {}
-func (d *) declNode() {}
-func (d *) declNode() {}
-func (d *) declNode() {}
-func (d *) declNode() {}
-func (d *) declNode() {}
+func (d *FunctionCall) declNode() {}
+func (d *FunctionDecl) declNode() {}
+func (d *FunctionDef) declNode() {}
+func (d *Program) declNode() {}
+//func (d *) declNode() {}
 
 
 

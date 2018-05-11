@@ -4,8 +4,6 @@ import (
 	"BruteForceSimpleC/token"
 	"BruteForceSimpleC/scan"
 	"BruteForceSimpleC/ast"
-
-	"container/list"
 )
 
 type parser struct {
@@ -67,47 +65,72 @@ func (p *parser) closeScope() {
 
 
 //File serves as the top level
-func (p *parser) parseFile() *ast.File {
-	topLevels := make([]*ast.Program, 0)
+func (p *parser) parseProgram() *ast.Program {
+	var topLevels []*ast.Decl
 	for p.tok != token.EOF {
-		p.parseProgram()
+		topLevel := p.parseDecl()
+		topLevels = append(topLevels, &topLevel)
 	}
-	return &ast.File{Programs:topLevels, Scope:nil}
+	return &ast.Program{Entry: p.pos, Decls:topLevels}
 }
 
-func (p *parser) parseProgram() []*ast.GeneralDecl {
-	var list []*ast.GeneralDecl
-	topLevel := p.parseDecl()
-	list = append(list, topLevel)
-	return list
-}
 
-func (p *parser) parseDecl() *ast.Decl {
+
+func (p *parser) parseDecl() (d ast.Decl) {
 	declPos  := p.pos
 	declType := p.keywordToType()
 	declName := p.parseIdent()
 
-	if p.tok == ',' {
-		var args []*ast.Ident
-		p.next()
+	switch p.tok {
+	case ';':
+		list := []*ast.Ident{declName}
+		variable := ast.VarList{ZerothPos:declName.NamePos, List:list}
+		d = &ast.GeneralDecl{TypePos:declPos, Type:declType, List:variable}
+	case ',':
+		var vars []*ast.Ident
+		vars = append(vars, &ast.Ident{NamePos:declPos, Name:declName.Name})//TODO add support for new ints
 		tail := p.parseVarList()
-		args = append(args, declName)
-		args = append(args, tail.List...)
-		p.expect(';')
-		return ast.GeneralDecl{TypePos:declPos, Type:declType, Specs:args}
-
-	} else {
-		p.expect('(')
-		ArgType := p.keywordToType()
+		vars = append(tail.List)
+		varList := ast.VarList{ZerothPos:vars[1].NamePos, List:vars}
+		d = &ast.GeneralDecl{TypePos:declPos, Type:declType, List:varList}
+	case '(':
 		p.next()
-		if p.tok == token.IDENT {
-
+		argType := p.keywordToType()
+		p.next()
+		if p.tok == ')'{
+			declEnd := p.pos
+			d = &ast.FunctionDecl{DeclPos: p.pos, Name:declName, FuncType:declType, ArgType:argType, DeclEnd:declEnd}
 		}
 
 	}
 
+	return
 }
-
+//
+//func (p *parser) parseDecl() *ast.Decl {
+//
+//
+//	if p.tok == ',' {
+//		var args []*ast.Ident
+//		p.next()
+//		tail := p.parseVarList()
+//		args = append(args, declName)
+//		args = append(args, tail.List...)
+//		p.expect(';')
+//		return &ast.GeneralDecl{TypePos:declPos, Type:declType, Specs:args}
+//
+//	} else {
+//		p.expect('(')
+//		ArgType := p.keywordToType()
+//		p.next()
+//		if p.tok == token.IDENT {
+//
+//		}
+//
+//	}
+//
+//}
+//
 func (p *parser) keywordToType() token.Token {
 	if p.tok == token.KW_FLOAT {
 		return token.FLOAT
@@ -138,34 +161,47 @@ func (p *parser) parseVarList() ast.VarList {
 	return ast.VarList{ZerothPos:startPos, List:list}
 }
 
-func (p *parser) parseStmt() (s *ast.Stmt) {
+func (p *parser) parseStmt() (s ast.Stmt) {
 	switch p.tok {
 	case token.IDENT, '-', token.INTEGER, token.FLOAT, '(':
 		//Tokens that may start an expression
 		s = p.parseStmt()
 		p.expect(';')
 	case token.KW_IF:
-		p.parseIfStmt()
+		s = p.parseIfStmt()
 	case token.KW_WHILE:
-		p.parseWhileStmt()
+		s = p.parseWhileStmt()
 	case token.KW_READ:
-		p.parseReadStmt()
+		s = p.parseReadStmt()
 		p.expect(';')
 	case token.KW_WRITE:
-		p.parseWriteExprList()
+		s = p.parseWriteExprList()
 		p.expect(';')
 	case token.KW_RETURN:
-		p.parseReturnExpr()
+		s = p.parseReturnExpr()
 		p.expect(';')
 	case '{':
-		p.parseBlock()
+		s = p.parseBlock()
 	default:
 		//no statement found
 		p.addError("InvalidStatement")
-		s = parseBadStatement()
+		s = p.parseBadStatement()
 		}
 
-		return
+	return
+}
+
+func (p *parser) parseBadStatement() *ast.BadStmt {
+	fromPos := p.pos
+	var badStmt string
+	for p.tok != ';' {
+		p.next()
+		badStmt += p.lit
+		p.addError(badStmt)
+	}
+	toPos := p.expect(';')
+
+	return &ast.BadStmt{From:fromPos, To:toPos}
 }
 
 func (p *parser) parseIfStmt() *ast.IfStmt {
@@ -181,10 +217,10 @@ func (p *parser) parseIfStmt() *ast.IfStmt {
 		elseStmt := p.parseElseStmt(ifKey)
 		return &ast.IfStmt {Cond: cond, IfStmt:ifStmt, Else:elseStmt }
 	}
-	return &ast.IfStmt {ifKey, cond, ifStmt, nil }
+	return &ast.IfStmt {IfKey:ifKey, Cond:cond, IfStmt:ifStmt, Else:nil }
 }
 
-func (p *parser) parseElseStmt(openIf token.Pos) *ast.Stmt {
+func (p *parser) parseElseStmt(openIf token.Pos) ast.Stmt {
 	p.expect(token.KW_ELSE)
 	return p.parseStmt()
 }
@@ -199,14 +235,45 @@ func (p *parser) parseWhileStmt() *ast.WhileStmt {
 
 func (p *parser) parseReadStmt() *ast.ReadStmt {
 	readPos := p.pos
-	list := p.parseVarList()
+	varList := p.parseVarList()
 
-	return &ast.ReadStmt{readPos, list}
+	return &ast.ReadStmt{Read:readPos, In:varList}
 }
 
 func (p *parser) parseWriteExprList() *ast.WriteStmt {
 	writePos := p.expect(token.KW_WRITE)
-	return &ast.WriteStmt{Write:writePos, p.parseExprList()}
+	return &ast.WriteStmt{Write:writePos, Out:p.parseExprList()}
+}
+
+func (p *parser) parseExprList() *ast.WriteExprList{
+	pos := p.pos
+	var exprList []ast.Expr
+	p.next()
+
+		if p.tok == token.STRING{
+			String := p.lit
+			Start := p.pos
+
+			exprList = append(exprList, &ast.BasicLit{LitPos:Start, Type:token.STRING, Lit:String})
+
+
+		} else {
+			exprList = append(exprList, p.parseExpr())
+		}
+	for p.tok == ',' {
+		p.next()
+		if p.tok == token.STRING {
+			String := p.lit
+			Start := p.pos
+
+			exprList = append(exprList, &ast.BasicLit{LitPos:Start, Type:token.STRING, Lit:String})
+
+		} else {
+			exprList = append(exprList, p.parseExpr())
+		}
+	}
+	p.expect(';')
+	return &ast.WriteExprList{ListBeg:pos, Expr:exprList}
 }
 func (p *parser) parseReturnExpr() *ast.ReturnStmt {
 	returnPos := p.pos
@@ -217,7 +284,7 @@ func (p *parser) parseReturnExpr() *ast.ReturnStmt {
 	return &ast.ReturnStmt{Return:returnPos, Results:results}
 }
 
-func (p *parser) parseBlock() ast.BlockStmt {
+func (p *parser) parseBlock() *ast.BlockStmt {
 	open := p.pos
 	var block []ast.Stmt
 
@@ -226,7 +293,7 @@ func (p *parser) parseBlock() ast.BlockStmt {
 	}
 
 
-	return ast.BlockStmt{open, block, p.pos}
+	return &ast.BlockStmt{Lbrace:open, List:block, Rbrace:p.pos}
 }
 
 func (p *parser) parseParenExpr() *ast.ParenExpr {
@@ -371,10 +438,10 @@ func (p *parser) parseBoolExpr() ast.BoolExpr {
 		return ast.BoolExpr{Lhs:lhs, Op:opType, OpPos:opPos, Rhs:rhs}
 	case ')':
 		p.addError("no boolean operator found")
-		return ast.BoolExpr{Lhs:lhs, Op:nil, OpPos:nil}
+		return ast.BoolExpr{Lhs:lhs, Op:token.ILLEGAL, OpPos:token.NoPos, Rhs:lhs}
 	default:
 		p.addError("no valid boolean expression")
-		return ast.BoolExpr{Lhs:lhs, Op:nil, OpPos:nil}
+		return ast.BoolExpr{Lhs:lhs, Op:token.ILLEGAL, OpPos:token.NoPos, Rhs:lhs}
 
 	}
 
@@ -383,8 +450,9 @@ func (p *parser) parseBoolExpr() ast.BoolExpr {
 
 func (p *parser) parseCall() *ast.CallExpr{
 	obj := p.curScope.Lookup(p.lit)
+	var fun string
 	if obj.Kind == ast.Function {
-		fun := obj.Decl
+		fun = obj.Name
 	} else {
 		p.addError("function never declared")
 	}
